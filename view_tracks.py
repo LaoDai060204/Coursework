@@ -1,83 +1,83 @@
-import tkinter as tk  # Import the Tkinter library for creating GUI components
-import tkinter.scrolledtext as tkst  # Import scrolled text widget for displaying large amounts of text
-import track_library as lib  # Import the track library module which handles track data operations
-import font_manager as fonts  # Import font manager to configure font settings
+import tkinter as tk  # Core Tkinter module for GUI elements
+import tkinter.scrolledtext as tkst  # ScrolledText widget for scrollable text display
+import track_library as lib  # Custom library handling track data retrieval and storage
+import font_manager as fonts  # Module to apply consistent font settings across widgets
 
 class TrackViewer:
-    """Class to create a window for viewing track information."""
+    """Window class to display a list of tracks and show individual track details."""
     
     def __init__(self, parent):
-        """Initialize the TrackViewer with a parent window."""
-        lib.load_library()  # Load the track library data into memory
-        self.window = tk.Toplevel(parent)  # Create a new top-level window attached to the parent
-        self.window.geometry("750x350")  # Set the window dimensions to 750 pixels wide by 350 pixels high
-        self.window.title("View Tracks")  # Set the title of the window to "View Tracks"
-        fonts.configure()  # Apply font configurations from the font_manager module
+        """Set up the track viewer window and load track library data."""
+        lib.load_library()  # Initialize the track database into memory
+        self.window = tk.Toplevel(parent)  # Create a floating window above the main application
+        self.window.geometry("750x350")  # Define window size: width=750px, height=350px
+        self.window.title("View Tracks")  # Window title shown in the title bar
+        fonts.configure()  # Apply font settings from the font_manager module
         
-        self.setup_ui()  # Call the method to set up the user interface components
-        self.list_all_tracks()  # Call the method to initially display all tracks
+        self.setup_ui()  # Build and layout UI components within the window
+        self.list_all_tracks()  # Populate the track list on startup
     
     def setup_ui(self):
-        """Set up the user interface components."""
-        # Create a button labeled "List All Tracks" that triggers the list_all_tracks method when clicked
+        """Construct buttons, input fields, and text areas for user interaction."""
+        # Button to refresh and show every track in the library
         tk.Button(self.window, text="List All Tracks", command=self.list_all_tracks).grid(row=0, column=0, padx=10, pady=10)
         
-        # Create a label with text "Enter Track Number:" to prompt user input
+        # Label prompting the user to enter a track ID
         tk.Label(self.window, text="Enter Track Number:").grid(row=0, column=1, padx=10, pady=10)
-        # Create an entry field for the user to input a track number, with a width of 5 characters
+        # Entry widget for user to type in the desired track number
         self.entry_track = tk.Entry(self.window, width=5)
-        self.entry_track.grid(row=0, column=2, padx=10, pady=10)  # Place the entry field in the grid
-        # Create a button labeled "View Details" that triggers the view_track_details method when clicked
+        self.entry_track.grid(row=0, column=2, padx=10, pady=10)
+        # Button to display details for the track number entered above
         tk.Button(self.window, text="View Details", command=self.view_track_details).grid(row=0, column=3, padx=10, pady=10)
         
-        # Create a scrolled text area to display the list of all tracks, with specified width and height
+        # Scrollable text area listing all tracks available
         self.list_area = tkst.ScrolledText(self.window, width=48, height=12, wrap="none")
-        self.list_area.grid(row=1, column=0, columnspan=3, sticky="W", padx=10, pady=10)  # Span across 3 columns, align west
+        self.list_area.grid(row=1, column=0, columnspan=3, sticky="W", padx=10, pady=10)
         
-        # Create a text area to display details of a selected track, with specified width and height
+        # Text widget showing selected track's information
         self.detail_area = tk.Text(self.window, width=24, height=4, wrap="none")
-        self.detail_area.grid(row=1, column=3, sticky="NW", padx=10, pady=10)  # Align northwest in the grid
+        self.detail_area.grid(row=1, column=3, sticky="NW", padx=10, pady=10)
         
-        # Create a label to display status messages, initially empty, with a specific font
+        # Status label to display messages like "Listed all tracks" or "Track not found"
         self.status_lbl = tk.Label(self.window, text="", font=("Helvetica", 10))
-        self.status_lbl.grid(row=2, column=0, columnspan=4, padx=10, pady=10)  # Span across 4 columns
+        self.status_lbl.grid(row=2, column=0, columnspan=4, padx=10, pady=10)
     
     def list_all_tracks(self):
-        """List all tracks in the library in the list_area."""
-        self.list_area.delete("1.0", tk.END)  # Delete all existing content in the list_area from start to end
-        tracks = lib.list_all()  # Retrieve a string of all tracks from the track library
-        self.list_area.insert(tk.END, tracks)  # Insert the tracks string into the list_area at the end
-        self.status_lbl.config(text="Listed all tracks")  # Update the status label to indicate tracks are listed
+        """Fetch all track entries and display them in the scrollable list area."""
+        self.list_area.delete("1.0", tk.END)  # Clear previous content
+        tracks = lib.list_all()  # Get a combined string of every track in the library
+        self.list_area.insert(tk.END, tracks)  # Add the tracks text to the list widget
+        self.status_lbl.config(text="Listed all tracks")  # Update status to inform the user
     
     def view_track_details(self):
-        """View details of a specific track based on the entered track number."""
-        track_number = self.entry_track.get().strip()  # Get the text from the entry field and remove whitespace
-        # Format the track number to two digits if it's numeric, otherwise use it as is
+        """Show detailed information for a single track, identified by its number."""
+        track_number = self.entry_track.get().strip()  # Read and trim input from the entry field
+        # Normalize numeric IDs to two digits (e.g., '3' becomes '03')
         formatted_number = f"{int(track_number):02d}" if track_number.isdigit() else track_number
-        name = lib.get_name(formatted_number)  # Attempt to get the track name from the library using the formatted number
-        if name is None:  # Check if the track was not found
-            self.detail_area.delete("1.0", tk.END)  # Delete all existing content in the detail_area
-            self.detail_area.insert(tk.END, "Track not found")  # Insert "Track not found" message into the detail_area
-            return  # Exit the method since no track was found
+        name = lib.get_name(formatted_number)  # Look up track title in the library
+        if name is None:
+            # If no matching track, clear details area and show an error message
+            self.detail_area.delete("1.0", tk.END)
+            self.detail_area.insert(tk.END, "Track not found")
+            return
         
-        # Retrieve additional track details from the library
-        artist = lib.get_artist(formatted_number)  # Get the artist name for the track
-        rating = lib.get_rating(formatted_number)  # Get the rating value for the track
-        plays = lib.get_play_count(formatted_number)  # Get the play count for the track
-        # Format the track details into a multi-line string with name, artist, rating (as stars), and plays
+        # Gather other attributes for the selected track
+        artist = lib.get_artist(formatted_number)
+        rating = lib.get_rating(formatted_number)
+        plays = lib.get_play_count(formatted_number)
+        # Build a multi-line string for display: title, artist, star-rating, and play count
         details = f"{name}\n{artist}\nRating: {'★' * rating}\nPlays: {plays}"
         
-        self.detail_area.delete("1.0", tk.END)  # Delete all existing content in the detail_area
-        self.detail_area.insert(tk.END, details)  # Insert the formatted track details into the detail_area
-        # Update the status label to show which track's details are being displayed
-        self.status_lbl.config(text=f"Showing details for Track {formatted_number}")
+        self.detail_area.delete("1.0", tk.END)  # Remove old track details
+        self.detail_area.insert(tk.END, details)  # Insert the newly formatted details
+        self.status_lbl.config(text=f"Showing details for Track {formatted_number}")  # Inform user which track is displayed
 
 def open_view_tracks(parent):
-    """Function to open the track viewer window."""
-    TrackViewer(parent)  # Create a new instance of TrackViewer with the given parent window
+    """Convenience function to instantiate the TrackViewer window."""
+    TrackViewer(parent)
 
 if __name__ == "__main__":
-    """Main block to run the application for testing purposes."""
-    root = tk.Tk()  # Create the main Tkinter root window
-    TrackViewer(root)  # Create an instance of TrackViewer attached to the root window
-    root.mainloop()  # Start the Tkinter event loop to run the application
+    # When run as a script, create the main Tkinter window and launch TrackViewer
+    root = tk.Tk()
+    TrackViewer(root)
+    root.mainloop()
